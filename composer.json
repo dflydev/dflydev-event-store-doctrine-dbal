@@ -1,0 +1,32 @@
+{
+    "name": "dflydev/event-store-doctrine-dbal",
+    "description": "Doctrine DBAL implementation of a naive event store.",
+    "keywords": ["domain-driven design", "ddd", "cqrs", "event sourcing", "event store", "doctrine", "dbal"],
+    "require": {
+        "php": ">=5.5",
+        "dflydev/event-store": "~0.0@dev",
+        "doctrine/dbal": "~2.4",
+        "event-centric/domain-events": "~0.0@dev",
+        "event-centric/when": "~0.0@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~3.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "Dflydev\\EventStore\\Doctrine\\Dbal\\": "src/Dflydev/EventStore/Doctrine/Dbal"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Dflydev\\EventStore\\Doctrine\\Dbal\\": "tests/Dflydev/EventStore/Doctrine/Dbal"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.0.x-dev"
+        }
+    }
+
+}
+
