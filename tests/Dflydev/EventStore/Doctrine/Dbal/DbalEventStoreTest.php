@@ -4,8 +4,8 @@ namespace Dflydev\EventStore\Doctrine\Dbal;
 
 use Dflydev\EventStore\EventNotifiable;
 use Dflydev\EventStore\EventStreamId;
-use Dflydev\EventStore\Implementations\DefaultEventStream;
-use Dflydev\EventStore\Implementations\JsonEventSerializer;
+use Dflydev\EventStore\DefaultEventStream;
+use Dflydev\EventStore\JsonEventSerializer;
 use EventCentric\DomainEvents\DomainEvent;
 use EventCentric\DomainEvents\DomainEvents;
 use EventCentric\DomainEvents\DomainEventsArray;

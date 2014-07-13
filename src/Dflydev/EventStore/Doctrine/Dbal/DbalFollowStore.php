@@ -7,71 +7,75 @@ use Dflydev\EventStore\FollowStore;
 use Dflydev\EventStore\FollowStoreDispatcher;
 use Doctrine\DBAL\Connection;
 
-class DbalFollowStore extends FollowStore
+abstract class DbalFollowStore extends FollowStore
 {
     private $eventStore;
     private $followStoreDispatcher;
     private $connection;
-    private $lastDispatchedEventId;
+    private $tableName;
 
     public function __construct(
         EventStore $eventStore,
         FollowStoreDispatcher $followStoreDispatcher,
         Connection $connection,
+        $tableName = null,
         array $eventDispatchers = []
     ) {
         $this->eventStore = $eventStore;
         $this->followStoreDispatcher = $followStoreDispatcher;
         $this->connection = $connection;
+        $this->tableName = $tableName ?: 'dflydev_fs_last_event';
         $this->registerEventDispatchers($eventDispatchers);
-        $this->lastDispatchedEventId = static::queryLastDispatchedEventId($connection);
     }
 
     public function notifyDispatchableEvents()
     {
-        $lastDispatchedEventId = $this->followStoreDispatcher->notifyEventDispatchers(
-            $this->eventStore,
-            $this->lastDispatchedEventId,
-            $this->eventDispatchers()
-        );
-
-        if ($this->lastDispatchedEventId !== $lastDispatchedEventId) {
-            static::saveLastDispatchedEventId($this->connection, $lastDispatchedEventId);
-
-            $this->lastDispatchedEventId = $lastDispatchedEventId;
-        }
-    }
-
-    private static function saveLastDispatchedEventId(Connection $connection, $eventId)
-    {
-        $connection->transactional(function ($connection) use ($eventId) {
-            $numberOfAffectedRows = $connection->insert('dflydev_fs_last_event', [
-                'event_id' => $eventId,
-            ]);
-
-            if ($numberOfAffectedRows < 1) {
-                $numberOfAffectedRows = $connection->update('dflydev_fs_last_event', [
-                    'event_id' => $eventId,
-                ]);
-            }
-
-            if ($numberOfAffectedRows < 1) {
-                throw new \RuntimeException("Could not save last dispatched event ID");
-            }
+        $this->transactional($this->connection, $this->tableName, function (Connection $connection, $tableName) {
+            $this->findAndDispatchNewDispatchableEvents($connection, $tableName);
         });
     }
 
-    private static function queryLastDispatchedEventId(Connection $connection)
+    abstract protected function transactional(Connection $connection, $tableName, $callback);
+
+    private function findAndDispatchNewDispatchableEvents(Connection $connection, $tableName)
+    {
+        $currentLastDispatchedEventId = $this->queryLastDispatchedEventId($connection, $tableName);
+
+        $lastDispatchedEventId = $this->followStoreDispatcher->notifyEventDispatchers(
+            $this->eventStore,
+            $currentLastDispatchedEventId,
+            $this->eventDispatchers()
+        );
+
+        if ($currentLastDispatchedEventId !== $lastDispatchedEventId) {
+            $this->saveLastDispatchedEventId($connection, $tableName, $lastDispatchedEventId);
+        }
+    }
+
+    protected function saveLastDispatchedEventId(Connection $connection, $tableName, $eventId)
+    {
+        $numberOfAffectedRows = $connection->executeUpdate('UPDATE '.$tableName.' SET event_id = ?', [$eventId]);
+
+        if ($numberOfAffectedRows < 1) {
+            $numberOfAffectedRows = $connection->insert($tableName, [
+                'event_id' => $eventId,
+            ]);
+        }
+
+        if ($numberOfAffectedRows < 1) {
+            throw new \RuntimeException("Could not save last dispatched event ID");
+        }
+    }
+
+    protected function queryLastDispatchedEventId(Connection $connection, $tableName)
     {
         try {
-            if ($val = $connection->fetchColumn('SELECT MAX(event_id) FROM dflydev_fs_last_event')) {
+            if ($val = $connection->fetchColumn('SELECT MAX(event_id) FROM '.$tableName)) {
                 return (int) $val;
             }
-
-            static::saveLastDispatchedEventId($connection, 0);
         } catch (\Exception $e)
         {
-            // noop
+            throw new \RuntimeException("Could not find the last dispatched event ID");
         }
 
         return 0;

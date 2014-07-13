@@ -9,12 +9,12 @@ use Doctrine\DBAL\Types\Type;
 
 class DbalFollowStoreSchemaUtil
 {
-    public static function updateSchema(Connection $connection)
+    public static function updateSchema(Connection $connection, $tableName = 'dflydev_fs_last_event')
     {
         $schemaManager = $connection->getSchemaManager();
 
         $fromSchema = $schemaManager->createSchema();
-        $toSchema = static::getSchema();
+        $toSchema = static::getSchema($tableName);
 
         $comparator = new Comparator();
         $diff = $comparator->compare($fromSchema, $toSchema);
@@ -26,11 +26,11 @@ class DbalFollowStoreSchemaUtil
         }
     }
 
-    protected static function getSchema()
+    protected static function getSchema($tableName)
     {
         $schema = new Schema();
 
-        $dispatcherLastEvent = $schema->createTable('dflydev_fs_last_event');
+        $dispatcherLastEvent = $schema->createTable($tableName);
         $dispatcherLastEvent->addColumn('event_id', 'integer');
         $dispatcherLastEvent->setPrimaryKey(['event_id']);
 

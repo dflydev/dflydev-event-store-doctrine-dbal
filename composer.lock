@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/dflydev/dflydev-event-store.git",
-                "reference": "6e4110ecb03f8167437e3ed842fba679e91a3d82"
+                "reference": "e87bf2e3be110d6672c606c1413525748091d835"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dflydev/dflydev-event-store/zipball/6e4110ecb03f8167437e3ed842fba679e91a3d82",
-                "reference": "6e4110ecb03f8167437e3ed842fba679e91a3d82",
+                "url": "https://api.github.com/repos/dflydev/dflydev-event-store/zipball/e87bf2e3be110d6672c606c1413525748091d835",
+                "reference": "e87bf2e3be110d6672c606c1413525748091d835",
                 "shasum": ""
             },
             "require": {
@@ -48,7 +48,7 @@
                 "source": "https://github.com/dflydev/dflydev-event-store/tree/master",
                 "issues": "https://github.com/dflydev/dflydev-event-store/issues"
             },
-            "time": "2014-07-09 04:39:29"
+            "time": "2014-07-10 22:22:48"
         },
         {
             "name": "doctrine/annotations",

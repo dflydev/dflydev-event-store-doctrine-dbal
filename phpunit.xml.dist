@@ -4,4 +4,11 @@
             <directory>tests</directory>
         </testsuite>
     </testsuites>
+
+    <php>
+        <env name="testsuite_mysql_db_name" value="dflydev_event_store"/>
+        <env name="testsuite_mysql_db_user" value="YOUR_USERNAME"/>
+        <env name="testsuite_mysql_db_password" value="YOUR_PASSWORD"/>
+        <env name="testsuite_mysql_db_host" value="localhost"/>
+    </php>
 </phpunit>

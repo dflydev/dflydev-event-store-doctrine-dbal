@@ -1,22 +1,23 @@
 <?php
 
-namespace Dflydev\EventStore\Doctrine\Dbal;
+namespace Dflydev\EventStore\Doctrine\Dbal\Mysql;
 
-use Dflydev\EventStore\EventNotifiable;
-use Dflydev\EventStore\EventStreamId;
-use Dflydev\EventStore\EventDispatcher;
+use Dflydev\EventStore\DefaultEventStream;
 use Dflydev\EventStore\DispatchableDomainEvent;
+use Dflydev\EventStore\Doctrine\Dbal\TestDomainEvent;
+use Dflydev\EventStore\EventDispatcher;
+use Dflydev\EventStore\EventNotifiable;
 use Dflydev\EventStore\EventStore;
+use Dflydev\EventStore\EventStreamId;
 use Dflydev\EventStore\FollowStoreDispatcher;
-use Dflydev\EventStore\Implementations\DefaultEventStream;
-use Dflydev\EventStore\Implementations\JsonEventSerializer;
+use Dflydev\EventStore\JsonEventSerializer;
 use EventCentric\DomainEvents\DomainEvent;
 use EventCentric\DomainEvents\DomainEvents;
 use EventCentric\DomainEvents\DomainEventsArray;
 use JsonSerializable;
 use PHPUnit_Framework_TestCase;
 
-class DbalFollowStoreTest extends PHPUnit_Framework_TestCase
+class MysqlFollowStoreTest extends PHPUnit_Framework_TestCase
 {
     private $configuration;
     private $connection;
@@ -25,11 +26,16 @@ class DbalFollowStoreTest extends PHPUnit_Framework_TestCase
     {
         $this->configuration = new \Doctrine\DBAL\Configuration();
         $this->connection = \Doctrine\DBAL\DriverManager::getConnection([
-            'memory' => true,
-            'driver' => 'pdo_sqlite',
+            'dbname' => $_ENV['testsuite_mysql_db_name'],
+            'user' => $_ENV['testsuite_mysql_db_user'],
+            'password' => $_ENV['testsuite_mysql_db_password'],
+            'host' => $_ENV['testsuite_mysql_db_host'],
+            'driver' => 'pdo_mysql',
         ], $this->configuration);
 
-        \Dflydev\EventStore\Doctrine\Dbal\Schema\DbalFollowStoreSchemaUtil::updateSchema($this->connection);
+        $this->connection->executeUpdate('DROP TABLE IF EXISTS test___dflydev_event_store');
+
+        \Dflydev\EventStore\Doctrine\Dbal\Schema\DbalFollowStoreSchemaUtil::updateSchema($this->connection, 'test___dflydev_event_store');
     }
 
     /** @test */
@@ -66,10 +72,11 @@ class DbalFollowStoreTest extends PHPUnit_Framework_TestCase
 
         $testEventDispatcher = $eventDispatcher('one', 'two', 'three', 'AAA', 'BBB', 'CCC', 'DDD', 'eee');
 
-        $followStore = new DbalFollowStore(
+        $followStore = new MysqlFollowStore(
             $eventStore,
             $followStoreDispatcher,
             $this->connection,
+            'test___dflydev_event_store',
             [$testEventDispatcher]
         );
 
@@ -85,10 +92,11 @@ class DbalFollowStoreTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(7, $testEventDispatcher->numberOfDomainEventsDispatched());
 
-        $followStore = new DbalFollowStore(
+        $followStore = new MysqlFollowStore(
             $eventStore,
             $followStoreDispatcher,
             $this->connection,
+            'test___dflydev_event_store',
             [$testEventDispatcher]
         );
 
