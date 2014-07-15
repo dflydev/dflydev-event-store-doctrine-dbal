@@ -11,17 +11,11 @@ class SqliteFollowStore extends DbalFollowStore
     {
         $connection->exec('BEGIN EXCLUSIVE TRANSACTION');
 
-        $caughtException = null;
-
         try {
             $callback($connection, $tableName);
         } catch (\Exception $e) {
-            $caughtException = $e;
-        }
-
-        if ($caughtException) {
             $connection->exec('ROLLBACK');
-            throw $caughtException;
+            throw $e;
         }
 
         $connection->exec('COMMIT');

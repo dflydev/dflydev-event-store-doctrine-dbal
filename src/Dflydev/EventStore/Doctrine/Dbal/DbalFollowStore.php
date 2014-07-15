@@ -18,14 +18,12 @@ abstract class DbalFollowStore extends FollowStore
         EventStore $eventStore,
         FollowStoreDispatcher $followStoreDispatcher,
         Connection $connection,
-        $tableName = null,
-        array $eventDispatchers = []
+        $tableName = null
     ) {
         $this->eventStore = $eventStore;
         $this->followStoreDispatcher = $followStoreDispatcher;
         $this->connection = $connection;
         $this->tableName = $tableName ?: 'dflydev_fs_last_event';
-        $this->registerEventDispatchers($eventDispatchers);
     }
 
     public function notifyDispatchableEvents()

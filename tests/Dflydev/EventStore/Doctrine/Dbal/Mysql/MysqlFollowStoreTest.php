@@ -76,9 +76,10 @@ class MysqlFollowStoreTest extends PHPUnit_Framework_TestCase
             $eventStore,
             $followStoreDispatcher,
             $this->connection,
-            'test___dflydev_event_store',
-            [$testEventDispatcher]
+            'test___dflydev_event_store'
         );
+
+        $followStore->registerEventDispatcher($testEventDispatcher);
 
         $followStore->notifyDispatchableEvents();
 
@@ -96,9 +97,10 @@ class MysqlFollowStoreTest extends PHPUnit_Framework_TestCase
             $eventStore,
             $followStoreDispatcher,
             $this->connection,
-            'test___dflydev_event_store',
-            [$testEventDispatcher]
+            'test___dflydev_event_store'
         );
+
+        $followStore->registerEventDispatcher($testEventDispatcher);
 
         $followStore->notifyDispatchableEvents();
 
