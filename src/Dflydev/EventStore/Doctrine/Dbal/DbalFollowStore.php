@@ -19,28 +19,28 @@ abstract class DbalFollowStore extends FollowStore
         EventStore $eventStore,
         FollowStoreDispatcher $followStoreDispatcher,
         Connection $connection,
-        $tableName = null,
-        $followStoreId = null
+        $followStoreId = null,
+        $tableName = null
     ) {
         $this->eventStore = $eventStore;
         $this->followStoreDispatcher = $followStoreDispatcher;
         $this->connection = $connection;
-        $this->tableName = $tableName ?: 'dflydev_fs_last_event';
         $this->followStoreId = $followStoreId ?: 'default';
+        $this->tableName = $tableName ?: 'dflydev_fs_last_event';
     }
 
     public function notifyDispatchableEvents()
     {
-        $this->transactional($this->connection, $this->tableName, $this->followStoreId, function (Connection $connection, $tableName, $followStoreId) {
-            $this->findAndDispatchNewDispatchableEvents($connection, $tableName, $followStoreId);
+        $this->transactional($this->connection, $this->followStoreId, $this->tableName, function (Connection $connection, $followStoreId, $tableName) {
+            $this->findAndDispatchNewDispatchableEvents($connection, $followStoreId, $tableName);
         });
     }
 
-    abstract protected function transactional(Connection $connection, $tableName, $followStoreId, $callback);
+    abstract protected function transactional(Connection $connection, $followStoreId, $tableName, $callback);
 
-    private function findAndDispatchNewDispatchableEvents(Connection $connection, $tableName, $followStoreId)
+    private function findAndDispatchNewDispatchableEvents(Connection $connection, $followStoreId, $tableName)
     {
-        $currentLastDispatchedEventId = $this->queryLastDispatchedEventId($connection, $tableName, $followStoreId);
+        $currentLastDispatchedEventId = $this->queryLastDispatchedEventId($connection, $followStoreId, $tableName);
 
         $lastDispatchedEventId = $this->followStoreDispatcher->notifyEventDispatchers(
             $this->eventStore,
@@ -49,11 +49,11 @@ abstract class DbalFollowStore extends FollowStore
         );
 
         if ($currentLastDispatchedEventId !== $lastDispatchedEventId) {
-            $this->saveLastDispatchedEventId($connection, $tableName, $followStoreId, $lastDispatchedEventId);
+            $this->saveLastDispatchedEventId($connection, $followStoreId, $tableName, $lastDispatchedEventId);
         }
     }
 
-    protected function saveLastDispatchedEventId(Connection $connection, $tableName, $followStoreId, $eventId)
+    protected function saveLastDispatchedEventId(Connection $connection, $followStoreId, $tableName, $eventId)
     {
         $numberOfAffectedRows = $connection->executeUpdate(
             'UPDATE '.$tableName.' SET event_id = ? WHERE follow_store_id = ?',
@@ -72,7 +72,7 @@ abstract class DbalFollowStore extends FollowStore
         }
     }
 
-    protected function queryLastDispatchedEventId(Connection $connection, $tableName, $followStoreId)
+    protected function queryLastDispatchedEventId(Connection $connection, $followStoreId, $tableName)
     {
         try {
             if ($val = $connection->fetchColumn(

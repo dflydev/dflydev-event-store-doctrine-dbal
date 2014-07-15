@@ -6,15 +6,15 @@ use Doctrine\DBAL\Connection;
 
 trait TransactionalTableLockable
 {
-    public function transactional(Connection $connection, $tableName, $followStoreId, $callback)
+    public function transactional(Connection $connection, $followStoreId, $tableName, $callback)
     {
-        $connection->transactional(function ($connection) use ($tableName, $followStoreId, $callback) {
+        $connection->transactional(function ($connection) use ($followStoreId, $tableName, $callback) {
             $connection->exec('LOCK TABLES '.$tableName.' WRITE');
 
             $caughtException = null;
 
             try {
-                $callback($connection, $tableName, $followStoreId);
+                $callback($connection, $followStoreId, $tableName);
             } catch (\Exception $e) {
                 $caughtException = $e;
             }

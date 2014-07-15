@@ -76,6 +76,7 @@ class MysqlFollowStoreTest extends PHPUnit_Framework_TestCase
             $eventStore,
             $followStoreDispatcher,
             $this->connection,
+            null,
             'test___dflydev_event_store'
         );
 
@@ -97,6 +98,7 @@ class MysqlFollowStoreTest extends PHPUnit_Framework_TestCase
             $eventStore,
             $followStoreDispatcher,
             $this->connection,
+            null,
             'test___dflydev_event_store'
         );
 
@@ -173,8 +175,8 @@ class MysqlFollowStoreTest extends PHPUnit_Framework_TestCase
                 $eventStore,
                 $followStoreDispatcher,
                 $this->connection,
-                'test___dflydev_event_store',
-                $followStoreId
+                $followStoreId,
+                'test___dflydev_event_store'
             );
 
             $followStore->registerEventDispatcher($testEventDispatcher);
@@ -195,8 +197,8 @@ class MysqlFollowStoreTest extends PHPUnit_Framework_TestCase
                 $eventStore,
                 $followStoreDispatcher,
                 $this->connection,
-                'test___dflydev_event_store',
-                $followStoreId
+                $followStoreId,
+                'test___dflydev_event_store'
             );
 
             $followStore->registerEventDispatcher($testEventDispatcher);
