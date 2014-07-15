@@ -7,12 +7,12 @@ use Doctrine\DBAL\Connection;
 
 class SqliteFollowStore extends DbalFollowStore
 {
-    public function transactional(Connection $connection, $tableName, $callback)
+    public function transactional(Connection $connection, $tableName, $followStoreId, $callback)
     {
         $connection->exec('BEGIN EXCLUSIVE TRANSACTION');
 
         try {
-            $callback($connection, $tableName);
+            $callback($connection, $tableName, $followStoreId);
         } catch (\Exception $e) {
             $connection->exec('ROLLBACK');
             throw $e;

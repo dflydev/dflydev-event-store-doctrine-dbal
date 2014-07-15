@@ -108,6 +108,112 @@ class SqliteFollowStoreTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(8, $testEventDispatcher->numberOfDomainEventsDispatched());
     }
+
+    /** @test */
+    public function shouldNotifyDispatchableEventsSplit()
+    {
+        $eventStore = new TestEventStore([
+            [0, [
+                new DispatchableDomainEvent(1, new TestDomainEvent('one')),
+                new DispatchableDomainEvent(2, new TestDomainEvent('two')),
+            ]],
+            [2, [
+                new DispatchableDomainEvent(3, new TestDomainEvent('three')),
+            ]],
+            [3, [
+                new DispatchableDomainEvent(4, new TestDomainEvent('AAA')),
+                new DispatchableDomainEvent(5, new TestDomainEvent('BBB')),
+                new DispatchableDomainEvent(6, new TestDomainEvent('CCC')),
+                new DispatchableDomainEvent(7, new TestDomainEvent('DDD')),
+            ]],
+            [7, []],
+            [7, []],
+            [7, [
+                new DispatchableDomainEvent(8, new TestDomainEvent('eee')),
+            ]],
+
+            [0, [
+                new DispatchableDomainEvent(1, new TestDomainEvent('one')),
+                new DispatchableDomainEvent(2, new TestDomainEvent('two')),
+            ]],
+            [2, [
+                new DispatchableDomainEvent(3, new TestDomainEvent('three')),
+            ]],
+            [3, [
+                new DispatchableDomainEvent(4, new TestDomainEvent('AAA')),
+                new DispatchableDomainEvent(5, new TestDomainEvent('BBB')),
+                new DispatchableDomainEvent(6, new TestDomainEvent('CCC')),
+                new DispatchableDomainEvent(7, new TestDomainEvent('DDD')),
+            ]],
+            [7, []],
+            [7, []],
+            [7, [
+                new DispatchableDomainEvent(8, new TestDomainEvent('eee')),
+            ]],
+        ]);
+
+        $followStoreDispatcher = new FollowStoreDispatcher();
+
+        $eventDispatcher = function () {
+            $args = func_get_args();
+
+            return new TestEventDispatcher($args);
+        };
+
+        $testEventDispatcher = $eventDispatcher(
+            'one', 'two', 'three', 'AAA', 'BBB', 'CCC', 'DDD', 'eee',
+            'one', 'two', 'three', 'AAA', 'BBB', 'CCC', 'DDD', 'eee'
+        );
+
+        $offset = 0;
+        foreach (['test000', 'test001'] as $followStoreId) {
+            $followStore = new SqliteFollowStore(
+                $eventStore,
+                $followStoreDispatcher,
+                $this->connection,
+                'test___dflydev_event_store',
+                $followStoreId
+            );
+
+            $followStore->registerEventDispatcher($testEventDispatcher);
+
+            $followStore->notifyDispatchableEvents();
+
+            $this->assertEquals($offset + 2, $testEventDispatcher->numberOfDomainEventsDispatched());
+
+            $followStore->notifyDispatchableEvents();
+
+            $this->assertEquals($offset + 3, $testEventDispatcher->numberOfDomainEventsDispatched());
+
+            $followStore->notifyDispatchableEvents();
+
+            $this->assertEquals($offset + 7, $testEventDispatcher->numberOfDomainEventsDispatched());
+
+            $followStore = new SqliteFollowStore(
+                $eventStore,
+                $followStoreDispatcher,
+                $this->connection,
+                'test___dflydev_event_store',
+                $followStoreId
+            );
+
+            $followStore->registerEventDispatcher($testEventDispatcher);
+
+            $followStore->notifyDispatchableEvents();
+
+            $followStore->notifyDispatchableEvents();
+
+            $followStore->notifyDispatchableEvents();
+
+            $this->assertEquals($offset + 8, $testEventDispatcher->numberOfDomainEventsDispatched());
+
+            $offset += 8;
+        }
+
+        $rows = $this->connection->fetchAll('SELECT * FROM test___dflydev_event_store');
+
+        $this->assertEquals(2, count($rows));
+    }
 }
 
 class TestEventStore implements EventStore

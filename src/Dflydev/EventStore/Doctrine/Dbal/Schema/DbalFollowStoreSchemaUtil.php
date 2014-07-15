@@ -32,7 +32,8 @@ class DbalFollowStoreSchemaUtil
 
         $dispatcherLastEvent = $schema->createTable($tableName);
         $dispatcherLastEvent->addColumn('event_id', 'integer');
-        $dispatcherLastEvent->setPrimaryKey(['event_id']);
+        $dispatcherLastEvent->addColumn('follow_store_id', 'string');
+        $dispatcherLastEvent->setPrimaryKey(['event_id', 'follow_store_id']);
 
         return $schema;
     }
