@@ -7,7 +7,7 @@ use Dflydev\EventStore\FollowStore;
 use Dflydev\EventStore\FollowStoreDispatcher;
 use Doctrine\DBAL\Connection;
 
-abstract class DbalFollowStore extends FollowStore
+class DbalFollowStore extends FollowStore
 {
     private $eventStore;
     private $followStoreDispatcher;
@@ -36,7 +36,12 @@ abstract class DbalFollowStore extends FollowStore
         });
     }
 
-    abstract protected function transactional(Connection $connection, $followStoreId, $tableName, $callback);
+    protected function transactional(Connection $connection, $followStoreId, $tableName, $callback)
+    {
+        $connection->transactional(function (Connection $connection) use ($followStoreId, $tableName, $callback) {
+            $callback($connection, $followStoreId, $tableName);
+        });
+    }
 
     private function findAndDispatchNewDispatchableEvents(Connection $connection, $followStoreId, $tableName)
     {

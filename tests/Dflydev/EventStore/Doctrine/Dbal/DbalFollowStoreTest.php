@@ -1,6 +1,6 @@
 <?php
 
-namespace Dflydev\EventStore\Doctrine\Dbal\Mysql;
+namespace Dflydev\EventStore\Doctrine\Dbal;
 
 use Dflydev\EventStore\DefaultEventStream;
 use Dflydev\EventStore\DispatchableDomainEvent;
@@ -17,9 +17,12 @@ use EventCentric\DomainEvents\DomainEventsArray;
 use JsonSerializable;
 use PHPUnit_Framework_TestCase;
 
-class MysqlFollowStoreTest extends PHPUnit_Framework_TestCase
+class DbalFollowStoreTest extends PHPUnit_Framework_TestCase
 {
+    /** @var \Doctrine\DBAL\Configuration */
     private $configuration;
+
+    /** @var \Doctrine\DBAL\Connection */
     private $connection;
 
     public function setUp()
@@ -70,9 +73,10 @@ class MysqlFollowStoreTest extends PHPUnit_Framework_TestCase
             return new TestEventDispatcher($args);
         };
 
+        /** @var TestEventDispatcher $testEventDispatcher */
         $testEventDispatcher = $eventDispatcher('one', 'two', 'three', 'AAA', 'BBB', 'CCC', 'DDD', 'eee');
 
-        $followStore = new MysqlFollowStore(
+        $followStore = new DbalFollowStore(
             $eventStore,
             $followStoreDispatcher,
             $this->connection,
@@ -94,7 +98,7 @@ class MysqlFollowStoreTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(7, $testEventDispatcher->numberOfDomainEventsDispatched());
 
-        $followStore = new MysqlFollowStore(
+        $followStore = new DbalFollowStore(
             $eventStore,
             $followStoreDispatcher,
             $this->connection,
@@ -164,6 +168,7 @@ class MysqlFollowStoreTest extends PHPUnit_Framework_TestCase
             return new TestEventDispatcher($args);
         };
 
+        /** @var TestEventDispatcher $testEventDispatcher */
         $testEventDispatcher = $eventDispatcher(
             'one', 'two', 'three', 'AAA', 'BBB', 'CCC', 'DDD', 'eee',
             'one', 'two', 'three', 'AAA', 'BBB', 'CCC', 'DDD', 'eee'
@@ -171,7 +176,7 @@ class MysqlFollowStoreTest extends PHPUnit_Framework_TestCase
 
         $offset = 0;
         foreach (['test000', 'test001'] as $followStoreId) {
-            $followStore = new MysqlFollowStore(
+            $followStore = new DbalFollowStore(
                 $eventStore,
                 $followStoreDispatcher,
                 $this->connection,
@@ -193,7 +198,7 @@ class MysqlFollowStoreTest extends PHPUnit_Framework_TestCase
 
             $this->assertEquals($offset + 7, $testEventDispatcher->numberOfDomainEventsDispatched());
 
-            $followStore = new MysqlFollowStore(
+            $followStore = new DbalFollowStore(
                 $eventStore,
                 $followStoreDispatcher,
                 $this->connection,
